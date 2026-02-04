@@ -68,6 +68,22 @@ X_train, X_test, y_train, y_test = train_test_split(
 y_train = keras.utils.to_categorical(y_train, num_classes=len(CLASSES))
 y_test = keras.utils.to_categorical(y_test, num_classes=len(CLASSES))
 
+# Data augmentation for training
+print("\nSetting up data augmentation...")
+train_datagen = ImageDataGenerator(
+    rotation_range=20,        # Rotation jusqu'à 20 degrés
+    zoom_range=0.2,           # Zoom entre 80% et 120%
+    horizontal_flip=True,     # Retournement horizontal
+    fill_mode='nearest'       # Remplissage des pixels après transformation
+)
+
+# No augmentation for validation/test data
+test_datagen = ImageDataGenerator()
+
+# Create generators
+train_generator = train_datagen.flow(X_train, y_train, batch_size=BATCH_SIZE)
+validation_generator = test_datagen.flow(X_test, y_test, batch_size=BATCH_SIZE)
+
 # Create a simple CNN model
 print("\nCreating model...")
 model = keras.Sequential([
@@ -94,13 +110,14 @@ model.compile(
 
 print(model.summary())
 
-# Train the model
-print("\nTraining model...")
+# Train the model with data augmentation
+print("\nTraining model with data augmentation...")
 history = model.fit(
-    X_train, y_train,
-    batch_size=BATCH_SIZE,
+    train_generator,
+    steps_per_epoch=len(X_train) // BATCH_SIZE,
     epochs=EPOCHS,
-    validation_data=(X_test, y_test),
+    validation_data=validation_generator,
+    validation_steps=len(X_test) // BATCH_SIZE,
     verbose=1
 )
 
@@ -110,5 +127,8 @@ test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
 print(f"\nTest accuracy: {test_accuracy:.2%}")
 
 # Save the model
-model.save('animal_classifier.h5')
-print("\nModel saved as 'animal_classifier.h5'")
+MODELS_DIR = 'models'
+os.makedirs(MODELS_DIR, exist_ok=True)
+model_path = os.path.join(MODELS_DIR, 'animal_classifier.h5')
+model.save(model_path)
+print(f"\nModel saved as '{model_path}'")

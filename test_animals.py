@@ -2,10 +2,11 @@ import os
 import numpy as np
 from tensorflow import keras
 import cv2
+from sklearn.metrics import confusion_matrix, recall_score
 
 # Configuration
 IMG_SIZE = 128
-MODEL_PATH = 'animal_classifier.h5'
+MODEL_PATH = 'models/animal_classifier.h5'
 
 # Class mapping (first letter to class name)
 CLASS_MAP = {
@@ -77,6 +78,11 @@ print("\nMaking predictions...")
 predictions = model.predict(X_test, verbose=0)
 predicted_classes = np.argmax(predictions, axis=1)
 
+# Filter out unknown classes (-1) for metrics calculation
+valid_indices = [i for i in range(len(expected_labels)) if expected_labels[i] != -1]
+y_true = np.array([expected_labels[i] for i in valid_indices])
+y_pred = np.array([predicted_classes[i] for i in valid_indices])
+
 # Calculate accuracy
 correct = 0
 total = 0
@@ -117,18 +123,50 @@ for i in range(len(test_images)):
 
 print("\n" + "="*60)
 if total > 0:
+    # Overall accuracy
     accuracy = (correct / total) * 100
-    print(f"\nOverall Accuracy: {correct}/{total} = {accuracy:.1f}%")
+    print(f"\nTaux de précision global: {correct}/{total} = {accuracy:.1f}%")
     
-    # Show accuracy by class
-    print("\nAccuracy by Class:")
-    print("-" * 60)
-    for i, class_name in enumerate(CLASSES):
-        if class_total[i] > 0:
-            class_accuracy = (class_correct[i] / class_total[i]) * 100
-            print(f"  {class_name.capitalize()}: {class_correct[i]}/{class_total[i]} = {class_accuracy:.1f}%")
-        else:
-            print(f"  {class_name.capitalize()}: No test images")
+    # Calculate recall per class
+    if len(y_true) > 0:
+        recall_per_class = recall_score(y_true, y_pred, average=None, zero_division=0)
+        
+        print("\nRappel par classe:")
+        print("-" * 60)
+        for i, class_name in enumerate(CLASSES):
+            if class_total[i] > 0:
+                recall = recall_per_class[i] * 100
+                print(f"  {class_name.capitalize()}: {recall:.1f}%")
+            else:
+                print(f"  {class_name.capitalize()}: No test images")
+        
+        # Confusion matrix
+        print("\nMatrice de confusion:")
+        print("-" * 60)
+        cm = confusion_matrix(y_true, y_pred)
+        
+        # Print header
+        print(" " * 12, end="")
+        for class_name in CLASSES:
+            print(f"{class_name.capitalize():>12}", end="")
+        print()
+        
+        # Print matrix
+        for i, class_name in enumerate(CLASSES):
+            print(f"{class_name.capitalize():>12}", end="")
+            for j in range(len(CLASSES)):
+                print(f"{cm[i][j]:>12}", end="")
+            print()
+        
+        # Print accuracy by class (for reference)
+        print("\nPrécision par classe:")
+        print("-" * 60)
+        for i, class_name in enumerate(CLASSES):
+            if class_total[i] > 0:
+                class_accuracy = (class_correct[i] / class_total[i]) * 100
+                print(f"  {class_name.capitalize()}: {class_correct[i]}/{class_total[i]} = {class_accuracy:.1f}%")
+            else:
+                print(f"  {class_name.capitalize()}: No test images")
 else:
     print("\nNo valid test images found!")
 print("="*60)
