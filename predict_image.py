@@ -54,12 +54,12 @@ if len(image_files) == 0:
     print(f"Error: No images found in {img_dir}!")
     sys.exit(1)
 
+# Store all results
+results = []
+
 # Process each image
 for image_file in image_files:
     image_path = os.path.join(img_dir, image_file)
-    print(f"\n{'='*60}")
-    print(f"Processing: {image_file}")
-    print('='*60)
     
     # Load and preprocess image
     img = load_and_preprocess_image(image_path)
@@ -75,8 +75,36 @@ for image_file in image_files:
     predicted_class = CLASSES[predicted_class_idx]
     confidence = probabilities[predicted_class_idx] * 100
     
+    # Calculate balance score (standard deviation - lower = more balanced)
+    # Perfect balance would be [33.33, 33.33, 33.33] with std = 0
+    balance_score = np.std(probabilities)
+    
+    # Store result
+    results.append({
+        'filename': image_file,
+        'probabilities': probabilities,
+        'predicted_class': predicted_class,
+        'confidence': confidence,
+        'balance_score': balance_score
+    })
+
+# Sort by balance score (least balanced first, most balanced last)
+results.sort(key=lambda x: x['balance_score'], reverse=True)
+
+# Display results sorted by balance
+for result in results:
+    print(f"\n{'='*60}")
+    print(f"Processing: {result['filename']}")
+    print('='*60)
+    
+    probabilities = result['probabilities']
+    predicted_class = result['predicted_class']
+    confidence = result['confidence']
+    balance_score = result['balance_score']
+    
     # Display results
-    print(f"\nPrédiction: {predicted_class.capitalize()} ({confidence:.1f}%)\n")
+    print(f"\nPrédiction: {predicted_class.capitalize()} ({confidence:.1f}%)")
+    print(f"Score d'équilibre: {balance_score:.4f} (plus bas = plus équilibré)\n")
     print("Probabilités pour chaque classe:")
     print("-" * 60)
     

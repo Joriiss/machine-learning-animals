@@ -74,7 +74,7 @@ train_datagen = ImageDataGenerator(
     rotation_range=20,        # Rotation jusqu'à 20 degrés
     zoom_range=0.2,           # Zoom entre 80% et 120%
     horizontal_flip=True,     # Retournement horizontal
-    fill_mode='nearest'       # Remplissage des pixels après transformation
+    fill_mode='nearest'       # Remplissage des     s après transformation
 )
 
 # No augmentation for validation/test data

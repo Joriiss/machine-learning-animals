@@ -3,6 +3,8 @@ import numpy as np
 from tensorflow import keras
 import cv2
 from sklearn.metrics import confusion_matrix, recall_score
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Configuration
 IMG_SIZE = 128
@@ -145,7 +147,7 @@ if total > 0:
         print("-" * 60)
         cm = confusion_matrix(y_true, y_pred)
         
-        # Print header
+        # Print text version
         print(" " * 12, end="")
         for class_name in CLASSES:
             print(f"{class_name.capitalize():>12}", end="")
@@ -157,6 +159,25 @@ if total > 0:
             for j in range(len(CLASSES)):
                 print(f"{cm[i][j]:>12}", end="")
             print()
+        
+        # Create and save confusion matrix image
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                    xticklabels=[c.capitalize() for c in CLASSES],
+                    yticklabels=[c.capitalize() for c in CLASSES],
+                    cbar_kws={'label': 'Nombre d\'images'})
+        plt.title('Matrice de Confusion', fontsize=16, fontweight='bold')
+        plt.ylabel('Classe Réelle', fontsize=12)
+        plt.xlabel('Classe Prédite', fontsize=12)
+        plt.tight_layout()
+        
+        # Save image
+        os.makedirs('models', exist_ok=True)
+        confusion_matrix_path = 'models/confusion_matrix.png'
+        plt.savefig(confusion_matrix_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        
+        print(f"\nMatrice de confusion sauvegardée: {confusion_matrix_path}")
         
         # Print accuracy by class (for reference)
         print("\nPrécision par classe:")
