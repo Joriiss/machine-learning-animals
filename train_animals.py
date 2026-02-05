@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 import cv2
 
 # Configuration
-IMG_SIZE = 128  # Simple and fast
+IMG_SIZE = 128 
 BATCH_SIZE = 32
 EPOCHS = 10
 
@@ -74,7 +74,7 @@ train_datagen = ImageDataGenerator(
     rotation_range=20,        # Rotation jusqu'à 20 degrés
     zoom_range=0.2,           # Zoom entre 80% et 120%
     horizontal_flip=True,     # Retournement horizontal
-    fill_mode='nearest'       # Remplissage des     s après transformation
+    fill_mode='nearest'      
 )
 
 # No augmentation for validation/test data
